@@ -25,3 +25,13 @@ I need a service that will allow user to upload arbitrary data files (primarily 
 - Admin will be able to review any files uploaded by any user.
 - User may only review files that the user has uploaded herself.
 - Website functionality will include appropriate unit and integration spec. Tests should be written using rspec framework and adhere to Even Better Specs guidelines: https://evenbetterspecs.github.io/
+
+Additional Clarifications:
+
+- For v1, let's just treat all values as a string. Subsequent versions will introduce data type conversions. The schema should be basic but flexible enough to accommodate different formats uniformly.
+- For v1, inconsistent data formatting means varying number of columns per row. A duplicate file is identified by its contents so a hash should suffice.
+- For database, let's use postgresql.
+- For auth, let's use oauth. For v1, enable users to log in using their Google account.
+- For v1 UI, make UI simple upload form.
+- No preference on error messaging.
+- No immediate concerns about scalability. Assume largest files may be up to 10k rows.
