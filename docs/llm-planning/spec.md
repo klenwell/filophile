@@ -138,7 +138,6 @@ This is a business-to-business (B2B) web application that allows users to upload
 - Test stack:
   - RSpec
   - FactoryBot
-  - Shoulda Matchers
   - (Optional: Guard, RuboCop, Spring)
 
 ---
