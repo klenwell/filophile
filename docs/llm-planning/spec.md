@@ -1,3 +1,5 @@
+# File Uploader Specification
+
 ## Product Overview
 
 This is a business-to-business (B2B) web application that allows users to upload, validate, and manage CSV data files. The application will:
@@ -13,6 +15,8 @@ This is a business-to-business (B2B) web application that allows users to upload
 - Be containerized for local development using Docker.
 - Include full test coverage with RSpec following [Even Better Specs](https://evenbetterspecs.github.io/).
 
+---
+
 ## Functional Requirements
 
 ### User Authentication
@@ -20,119 +24,157 @@ This is a business-to-business (B2B) web application that allows users to upload
 - Users can sign in with their Google account (OAuth).
 - Only authenticated users can access any part of the app.
 - Admins are flagged via an internal user attribute (`admin: boolean`).
+- A user’s session persists securely using encrypted cookies.
 
 ### File Upload and Validation
 
-- Authenticated users can upload CSV files.
+- Authenticated users can upload CSV files via a browser form.
 - The system performs validations:
-  - Each row in the CSV must have the same number of columns.
-  - Duplicate file detection is based on hash of contents.
-- If validations fail, user is presented with an error message.
+  - File must be a valid CSV (based on MIME type and extension).
+  - Each row must have the same number of columns.
+  - Column count must be greater than zero.
+  - Duplicate file detection is based on a hash (e.g., SHA256) of normalized contents.
+- If validations fail, the user is presented with clear error messages.
 - If successful:
   - File metadata is saved.
-  - File contents are parsed and stored.
+  - File contents are parsed and stored in the database.
   - File hash is recorded to detect future duplicates.
+  - Original file is stored (e.g., on disk or in a blob column) for future download.
 
 ### File Management
 
 - Users can view a list of files they have uploaded.
-- Users can download a copy of their previously uploaded files.
+- Users can view a detailed page for each upload with metadata and a preview of parsed contents.
+- Users can download a copy of their uploaded files.
 - Admins can view:
-  - All files uploaded across the system.
-  - Any individual file and its details (metadata + contents).
+  - A paginated list of all uploads across the system.
+  - Any individual file and its metadata + contents.
 - Users can only see and access their own uploads.
+- Admins can see all uploads, regardless of owner.
+
+---
 
 ## Data Model
 
-### User
+### `User`
 
-- id
-- email
-- name
-- uid (from Google OAuth)
-- provider (default: "google_oauth2")
-- admin (boolean)
-- timestamps
+| Field      | Type      | Notes                          |
+|------------|-----------|--------------------------------|
+| id         | integer   | Primary key                    |
+| email      | string    | Unique                         |
+| name       | string    |                                |
+| uid        | string    | From Google OAuth              |
+| provider   | string    | Default: `"google_oauth2"`     |
+| admin      | boolean   | Default: `false`               |
+| timestamps | datetime  | `created_at`, `updated_at`     |
 
-### Upload
+### `Upload`
 
-- id
-- user_id (foreign key)
-- filename
-- content_hash (SHA256 or similar)
-- row_count
-- column_count
-- uploaded_at
-- timestamps
+| Field         | Type      | Notes                           |
+|---------------|-----------|---------------------------------|
+| id            | integer   | Primary key                     |
+| user_id       | integer   | Foreign key to `User`           |
+| filename      | string    | Original uploaded filename      |
+| content_hash  | string    | SHA256 (unique constraint)      |
+| row_count     | integer   | Total rows in CSV               |
+| column_count  | integer   | Number of columns per row       |
+| uploaded_at   | datetime  | When the upload occurred        |
+| original_file | blob/path | Stored for re-download          |
+| timestamps    | datetime  | `created_at`, `updated_at`      |
 
-### UploadRow
+### `UploadRow`
 
-- id
-- upload_id (foreign key)
-- row_index (integer)
-- values (JSON)
-- timestamps
+| Field      | Type     | Notes                       |
+|------------|----------|-----------------------------|
+| id         | integer  | Primary key                 |
+| upload_id  | integer  | Foreign key to `Upload`     |
+| row_index  | integer  | Position in file (0-based)  |
+| values     | JSON     | Array of string values      |
+| timestamps | datetime | `created_at`, `updated_at`  |
 
-## API Endpoints (non-final, subject to Rails routing)
+---
+
+## API Endpoints (draft)
 
 ### User Routes
 
-- `GET /dashboard` – lists user’s uploaded files
-- `POST /uploads` – upload a new CSV file
-- `GET /uploads/:id` – view metadata and contents of a file
-- `GET /uploads/:id/download` – download file
+- `GET /dashboard` – Lists user’s uploaded files
+- `POST /uploads` – Upload a new CSV file
+- `GET /uploads/:id` – View metadata and contents of a file
+- `GET /uploads/:id/download` – Download original file
+- `DELETE /uploads/:id` – Delete file (optional)
 
 ### Admin Routes
 
-- `GET /admin/uploads` – list all uploads across users
-- `GET /admin/uploads/:id` – view file details and contents
+- `GET /admin/uploads` – List all uploads across users
+- `GET /admin/uploads/:id` – View file details and contents
+
+---
 
 ## UI
 
 - Basic Bootstrap-style layout
 - Google OAuth login button
 - Upload form (drag-drop or file picker)
+- Client-side file type checking (CSV-only)
 - Error messages on failed validation
 - Table of uploaded files with:
   - Filename
   - Uploaded at
-  - Row + column count
+  - Row and column count
   - Download link
-- Admin view with similar layout but extended permissions
+- Admin view with:
+  - User filtering
+  - Access to all uploads
+
+---
 
 ## Development Environment
 
 - Ruby on Rails (latest stable version)
 - PostgreSQL
 - Docker + docker-compose for local development
-- RSpec + FactoryBot + Shoulda Matchers for tests
 - OAuth via `omniauth-google-oauth2`
+- Test stack:
+  - RSpec
+  - FactoryBot
+  - Shoulda Matchers
+  - (Optional: Guard, RuboCop, Spring)
+
+---
 
 ## Testing
 
-- All models, controllers, and services will be tested.
-- RSpec used for both unit and integration tests.
-- Test coverage includes:
-  - User auth
-  - File upload and validation
-  - Duplicate detection
-  - Permission enforcement (user vs admin)
-  - Data persistence and integrity
-- Tests follow Even Better Specs structure:
-  - `describe`, `context`, `it` blocks
-  - Clear use of let, subject, and setup blocks
-  - Factories for all models
+- Full test coverage using RSpec.
+- Models, controllers, and services are all tested.
+- Coverage includes:
+  - Google OAuth auth flow
+  - File validation (malformed, empty, duplicate, oversize)
+  - Upload success/failure paths
+  - Role-based access control
+  - Data persistence and correctness
+- Tests follow [Even Better Specs](https://evenbetterspecs.github.io/) style:
+  - Clear `describe`, `context`, `it` structure
+  - Use of `let`, `subject`, `before`
+  - Factory-based model instantiation
+
+---
 
 ## Assumptions
 
-- CSV values will be treated as strings (no data type inference in v1).
-- Maximum upload size is ~10k rows per file.
-- Files will be stored temporarily for re-download but contents are persisted in DB.
-- No background jobs or async processing required for v1.
-- No front-end JS frameworks (e.g. React) are planned for v1.
+- All CSV values treated as strings (no type inference).
+- Max file size: ~10,000 rows or ~5MB.
+- CSV encoding must be UTF-8.
+- File storage is ephemeral; long-term persistence happens via parsed content in DB.
+- No background jobs or async workers in v1.
+- No JavaScript framework (e.g., React) is used in v1.
+
+---
 
 ## Non-Goals
 
-- No support for Excel files or other formats in v1.
-- No custom data normalization or schema inference beyond column consistency.
-- No email notifications or user management interface in v1.
+- No support for Excel or other non-CSV formats in v1.
+- No per-column validation or schema inference.
+- No email notifications, user profiles, or dashboards.
+- No file versioning or rollback capability.
+- No multi-user upload collaboration.
