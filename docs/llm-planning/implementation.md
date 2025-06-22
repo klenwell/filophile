@@ -55,7 +55,7 @@ Create `SessionsController` with `create` and `destroy` actions.
 
 Add a before_action that requires authentication for all controllers.
 
-Write controller specs for session logic and test login flow with mocked OmniAuth response.
+Write request specs for session logic and test login flow with mocked OmniAuth response.
 ```
 
 ---
@@ -209,7 +209,7 @@ Ensure all actions are protected:
 - Unauthorized users are redirected or receive 403
 - Invalid IDs raise 404
 
-Write controller and request specs for these cases.
+Write request specs for these cases.
 ```
 
 ---
