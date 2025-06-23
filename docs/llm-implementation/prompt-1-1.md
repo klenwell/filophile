@@ -1,33 +1,122 @@
 # Step 1.1: Initial Rails Setup with Docker
 
-This document summarizes the initial setup of the Filophile Rails application with Docker.
+This document provides the steps to set up the initial Rails application with Docker.
 
-## Steps Completed
+## Setup Commands
 
-### 1. Docker Configuration
+```bash
+# Create Docker configuration files
+cat > Dockerfile << 'EOF'
+FROM ruby:3.2.2
 
-Created Docker configuration files for development environment:
+# Install system dependencies
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    nodejs \
+    npm
 
-- `Dockerfile`: Sets up Ruby 3.2.2 environment with necessary system dependencies
-- `docker-compose.yml`: Defines services for:
-  - `web`: Rails application service
-  - `db`: PostgreSQL 14 service
-- `entrypoint.sh`: Docker entrypoint script to handle Rails-specific startup tasks
+# Install yarn
+RUN npm install -g yarn
 
-### 2. Rails Application Setup
+# Create a non-root user with UID 1000 (typical first user on Linux)
+RUN useradd -u 1000 -m app && \
+    chown -R app:app /home/app
 
-Created a new Rails 7.1.2 application with PostgreSQL database:
+# Set working directory and ownership
+WORKDIR /app
+RUN chown app:app /app
 
-- Generated basic Rails application structure
-- Configured database connection in `config/database.yml`
-- Set up environment variables for database connection
+# Switch to non-root user
+USER app
 
-### 3. Development Tools
+# Copy Gemfile and install dependencies
+COPY --chown=app:app Gemfile Gemfile.lock ./
+RUN bundle install
 
-Added and configured development gems in `Gemfile`:
+# Copy the rest of the application
+COPY --chown=app:app . .
 
-```ruby
+# Add a script to be executed every time the container starts
+COPY --chown=app:app entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
+
+# Start the main process
+CMD ["rails", "server", "-b", "0.0.0.0"]
+EOF
+
+cat > docker-compose.yml << 'EOF'
+version: "3"
+services:
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: filophile
+      POSTGRES_DB: filophile_development
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://filophile:password@db:5432/filophile_development
+      RAILS_ENV: development
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  bundle_cache:
+EOF
+
+cat > entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+# Remove a potentially pre-existing server.pid for Rails
+rm -f /app/tmp/pids/server.pid
+
+# Then exec the container's main process
+exec "$@"
+EOF
+
+chmod +x entrypoint.sh
+
+# Create initial Gemfile
+cat > Gemfile << 'EOF'
+source "https://rubygems.org"
+
+ruby "3.2.2"
+
+# Rails itself
+gem "rails", "~> 7.1.2"
+gem "pg", "~> 1.1"
+gem "puma", "~> 6.0"
+
+# Asset pipeline
+gem "sprockets-rails"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "stimulus-rails"
+
+# Other defaults
+gem "jbuilder"
+gem "redis", "~> 4.0"
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+gem "bootsnap", require: false
+
 group :development, :test do
+  gem "debug", platforms: %i[ mri mingw x64_mingw ]
   gem "rspec-rails", "~> 6.0"
   gem "factory_bot_rails"
   gem "faker"
@@ -35,6 +124,8 @@ group :development, :test do
 end
 
 group :development do
+  gem "web-console"
+  gem "rack-mini-profiler"
   gem "rubocop", require: false
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
@@ -50,32 +141,34 @@ group :test do
   gem "shoulda-matchers"
   gem "database_cleaner-active_record"
 end
+EOF
+
+touch Gemfile.lock
+
+# Create Rails app and install dependencies
+docker-compose run --rm web rails new . --force --database=postgresql --skip-git
+
+# Fix permissions for Docker
+sudo chown -R 1000:1000 .
+
+# Remove default test directory (using RSpec instead)
+rm -rf test/
+
+# Install RSpec
+docker-compose run --rm web rails generate rspec:install
 ```
-
-### 4. Testing Setup
-
-Configured RSpec and related testing tools:
-
-- Generated RSpec configuration files
-- Configured FactoryBot, DatabaseCleaner, and Shoulda Matchers in `rails_helper.rb`
-- Created initial health check endpoint (incomplete)
-
-## Current Status
-
-- Basic Rails application with Docker configuration is set up
-- Development and testing tools are installed and configured
-- Database configuration is in place
-- Health check endpoint implementation is pending due to CSRF/authentication issues
 
 ## Next Steps
 
-1. Resolve health check endpoint issues
-2. Set up initial models and database schema
-3. Implement core application features
+1. Set up the health check endpoint
+2. Configure RuboCop
+3. Set up Guard for automated testing
+4. Add initial models and database schema
 
-## Issues to Address
+## Notes
 
-The health check endpoint test is currently failing with a 403 Forbidden error. This needs investigation to:
-- Properly handle CSRF protection for API endpoints
-- Configure proper authentication/authorization
-- Ensure proper routing and controller inheritance
+- The application uses Ruby 3.2.2 and Rails 7.1.2
+- PostgreSQL 14 is used as the database
+- All development/test gems are configured in the Gemfile
+- Docker is set up to run the application as a non-root user
+- RSpec is configured as the testing framework
