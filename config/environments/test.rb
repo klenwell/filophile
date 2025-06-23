@@ -8,6 +8,9 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # Allow test hostname
+  config.hosts << "www.example.com"
+
   # While tests run files are not watched, reloading is not necessary.
   config.enable_reloading = false
 
