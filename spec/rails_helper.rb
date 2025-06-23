@@ -71,6 +71,9 @@ RSpec.configure do |config|
 
   # Database Cleaner configuration
   config.before(:suite) do
+    # Allow cleaning when using Docker database URL
+    DatabaseCleaner.allow_remote_database_url = true
+
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
