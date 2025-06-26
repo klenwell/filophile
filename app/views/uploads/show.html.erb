@@ -1,0 +1,46 @@
+<h1>Upload Details</h1>
+
+<p>
+  <strong>Filename:</strong>
+  <%= @upload.filename %>
+</p>
+
+<p>
+  <strong>Rows:</strong>
+  <%= @upload.row_count %>
+</p>
+
+<p>
+  <strong>Columns:</strong>
+  <%= @upload.column_count %>
+</p>
+
+<p>
+  <strong>Uploaded:</strong>
+  <%= time_ago_in_words(@upload.uploaded_at) %> ago
+</p>
+
+<h2>Uploaded Data</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Row</th>
+      <% @upload.column_count.times do |i| %>
+        <th>Column <%= i + 1 %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% @upload.upload_rows.order(:row_index).each do |upload_row| %>
+      <tr>
+        <td><%= upload_row.row_index + 1 %></td>
+        <% upload_row.values.each do |cell| %>
+          <td><%= cell %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= link_to 'Back to uploads', uploads_path %>

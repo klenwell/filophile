@@ -1,0 +1,12 @@
+<h1>Upload CSV</h1>
+
+<%= form_with(model: @upload, url: uploads_path) do |form| %>
+  <div class="field">
+    <%= form.label :original_file, 'CSV File' %>
+    <%= form.file_field :original_file %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit 'Upload' %>
+  </div>
+<% end %>

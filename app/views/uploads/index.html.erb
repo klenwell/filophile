@@ -1,0 +1,27 @@
+<h1>My Uploads</h1>
+
+<%= link_to 'New Upload', new_upload_path %>
+
+<table>
+  <thead>
+    <tr>
+      <th>Filename</th>
+      <th>Rows</th>
+      <th>Columns</th>
+      <th>Uploaded At</th>
+      <th colspan="1"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @uploads.each do |upload| %>
+      <tr>
+        <td><%= link_to upload.filename, upload %></td>
+        <td><%= upload.row_count %></td>
+        <td><%= upload.column_count %></td>
+        <td><%= time_ago_in_words(upload.uploaded_at) %> ago</td>
+        <td><%= link_to 'Show', upload %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
