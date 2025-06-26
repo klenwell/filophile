@@ -4,8 +4,20 @@ RSpec.describe Upload, type: :model do
   let(:user) { create(:user) }
 
   describe 'associations' do
-    it { should belong_to(:user) }
-    it { should have_many(:upload_rows).dependent(:destroy) }
+    it 'belongs to user' do
+      association = described_class.reflect_on_association(:user)
+      expect(association.macro).to eq :belongs_to
+    end
+
+    it 'has many upload_rows' do
+      association = described_class.reflect_on_association(:upload_rows)
+      expect(association.macro).to eq :has_many
+    end
+
+    it 'destroys associated upload_rows' do
+      association = described_class.reflect_on_association(:upload_rows)
+      expect(association.options[:dependent]).to eq :destroy
+    end
 
     it 'has one attached original_file' do
       upload = Upload.new
@@ -14,16 +26,78 @@ RSpec.describe Upload, type: :model do
   end
 
   describe 'validations' do
-    subject { create(:upload, user: user) }
+    subject { build(:upload, user: user) }
 
-    it { should validate_presence_of(:filename) }
-    it { should validate_presence_of(:content_hash) }
-    it { should validate_uniqueness_of(:content_hash) }
-    it { should validate_presence_of(:row_count) }
-    it { should validate_numericality_of(:row_count).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:column_count) }
-    it { should validate_numericality_of(:column_count).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:uploaded_at) }
+    context 'when filename is nil' do
+      it 'is not valid' do
+        subject.filename = nil
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when content_hash is nil' do
+      it 'is not valid' do
+        subject.content_hash = nil
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when content_hash is not unique' do
+      it 'is not valid' do
+        create(:upload, user: user, content_hash: 'abc')
+        subject.content_hash = 'abc'
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when row_count is nil' do
+      it 'is not valid' do
+        subject.row_count = nil
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when row_count is not an integer' do
+      it 'is not valid' do
+        subject.row_count = 1.5
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when row_count is negative' do
+      it 'is not valid' do
+        subject.row_count = -1
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when column_count is nil' do
+      it 'is not valid' do
+        subject.column_count = nil
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when column_count is not an integer' do
+      it 'is not valid' do
+        subject.column_count = 1.5
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when column_count is negative' do
+      it 'is not valid' do
+        subject.column_count = -1
+        expect(subject).not_to be_valid
+      end
+    end
+
+    context 'when uploaded_at is nil' do
+      it 'is not valid' do
+        subject.uploaded_at = nil
+        expect(subject).not_to be_valid
+      end
+    end
   end
 
   describe 'factory' do
