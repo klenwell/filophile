@@ -9,7 +9,11 @@ Rails.application.routes.draw do
   get "/auth/google_oauth2/callback", to: "sessions#create"
   delete "/logout", to: "sessions#destroy"
 
-  resources :uploads, only: [:index, :new, :create, :show]
+  get "/dashboard", to: "uploads#index"
+
+  resources :uploads, only: [:new, :create, :show] do
+    get :download, on: :member
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

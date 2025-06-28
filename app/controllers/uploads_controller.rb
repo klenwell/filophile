@@ -8,6 +8,7 @@ class UploadsController < ApplicationController
 
   def show
     @upload = find_upload
+    @upload_rows = @upload.upload_rows.order(:row_index).limit(10)
   end
 
   def new
@@ -22,6 +23,11 @@ class UploadsController < ApplicationController
     end
 
     process_csv_upload(uploaded_io)
+  end
+
+  def download
+    @upload = find_upload
+    send_data @upload.original_file.download, filename: @upload.filename, content_type: 'text/csv'
   end
 
   private

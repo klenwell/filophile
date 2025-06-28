@@ -1,46 +1,53 @@
-<h1>Upload Details</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Upload Details</h1>
+  <div>
+    <%= link_to 'Download Original', download_upload_path(@upload), class: 'btn btn-success' %>
+    <%= link_to 'Back to Dashboard', dashboard_path, class: 'btn btn-secondary' %>
+  </div>
+</div>
 
-<p>
-  <strong>Filename:</strong>
-  <%= @upload.filename %>
-</p>
+<div class="card">
+  <div class="card-header">
+    Metadata
+  </div>
+  <div class="card-body">
+    <dl class="row">
+      <dt class="col-sm-3">Filename</dt>
+      <dd class="col-sm-9"><%= @upload.filename %></dd>
 
-<p>
-  <strong>Rows:</strong>
-  <%= @upload.row_count %>
-</p>
+      <dt class="col-sm-3">Rows</dt>
+      <dd class="col-sm-9"><%= @upload.row_count %></dd>
 
-<p>
-  <strong>Columns:</strong>
-  <%= @upload.column_count %>
-</p>
+      <dt class="col-sm-3">Columns</dt>
+      <dd class="col-sm-9"><%= @upload.column_count %></dd>
 
-<p>
-  <strong>Uploaded:</strong>
-  <%= time_ago_in_words(@upload.uploaded_at) %> ago
-</p>
+      <dt class="col-sm-3">Uploaded</dt>
+      <dd class="col-sm-9"><%= time_ago_in_words(@upload.uploaded_at) %> ago</dd>
+    </dl>
+  </div>
+</div>
 
-<h2>Uploaded Data</h2>
+<h2 class="mt-4">Data Preview (First 10 Rows)</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Row</th>
-      <% @upload.column_count.times do |i| %>
-        <th>Column <%= i + 1 %></th>
-      <% end %>
-    </tr>
-  </thead>
-  <tbody>
-    <% @upload.upload_rows.order(:row_index).each do |upload_row| %>
+<div class="table-responsive">
+  <table class="table table-bordered table-striped">
+    <thead class="table-light">
       <tr>
-        <td><%= upload_row.row_index + 1 %></td>
-        <% upload_row.values.each do |cell| %>
-          <td><%= cell %></td>
+        <th>#</th>
+        <% @upload.column_count.times do |i| %>
+          <th>Column <%= i + 1 %></th>
         <% end %>
       </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<%= link_to 'Back to uploads', uploads_path %>
+    </thead>
+    <tbody>
+      <% @upload_rows.each do |upload_row| %>
+        <tr>
+          <td><%= upload_row.row_index + 1 %></td>
+          <% upload_row.values.each do |cell| %>
+            <td><%= cell %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

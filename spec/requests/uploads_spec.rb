@@ -2,11 +2,75 @@ require 'rails_helper'
 
 RSpec.describe "Uploads", type: :request do
   let(:user) { create(:user) }
+  let(:other_user) { create(:user) }
 
   before do
-    # In a real app, you'd likely have a login helper.
-    # For this test, we're directly manipulating the session.
+    # Mock authentication
     allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
+  end
+
+  describe "GET /dashboard" do
+    let!(:user_upload) { create(:upload, user: user, filename: "user_file.csv") }
+    let!(:other_user_upload) { create(:upload, user: other_user, filename: "other_user_file.csv") }
+
+    it "displays the current user's uploads" do
+      get dashboard_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("My Uploads")
+      expect(response.body).to include(user_upload.filename)
+    end
+
+    it "does not display uploads from other users" do
+      get dashboard_path
+      expect(response.body).not_to include(other_user_upload.filename)
+    end
+  end
+
+  describe "GET /uploads/:id" do
+    let!(:user_upload) { create(:upload, user: user, filename: "user_file.csv") }
+    let!(:other_user_upload) { create(:upload, user: other_user, filename: "other_user_file.csv") }
+
+    context "when viewing own upload" do
+      it "is successful" do
+        get upload_path(user_upload)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(user_upload.filename)
+        expect(response.body).to include("Data Preview")
+      end
+    end
+
+    context "when viewing other user's upload" do
+      it "returns a 404 not found response" do
+        get upload_path(other_user_upload)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe "GET /uploads/:id/download" do
+    let!(:user_upload) { create(:upload, user: user, filename: "user_file.csv") }
+    let!(:other_user_upload) { create(:upload, user: other_user, filename: "other_user_file.csv") }
+    let(:file_content) { "header1,header2\nvalue1,value2\n" }
+
+    before do
+      user_upload.original_file.attach(io: StringIO.new(file_content), filename: 'user_file.csv', content_type: 'text/csv')
+    end
+
+    context "when downloading own upload" do
+      it "sends the file" do
+        get download_upload_path(user_upload)
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to include("attachment; filename=\"user_file.csv\"")
+        expect(response.body).to eq(file_content)
+      end
+    end
+
+    context "when downloading other user's upload" do
+      it "returns a 404 not found response" do
+        get download_upload_path(other_user_upload)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
   end
 
   describe "POST /uploads" do

@@ -1,12 +1,19 @@
-<h1>Upload CSV</h1>
+<h1>Upload a New CSV File</h1>
 
-<%= form_with(model: @upload, url: uploads_path) do |form| %>
-  <div class="field">
-    <%= form.label :original_file, 'CSV File' %>
-    <%= form.file_field :original_file %>
-  </div>
+<div class="row">
+  <div class="col-md-6">
+    <%= form_with(model: @upload, url: uploads_path) do |form| %>
+      <div class="mb-3">
+        <%= form.label :original_file, 'CSV File', class: 'form-label' %>
+        <%= form.file_field :original_file, class: 'form-control', accept: '.csv' %>
+        <div class="form-text">
+          Please select a .csv file to upload.
+        </div>
+      </div>
 
-  <div class="actions">
-    <%= form.submit 'Upload' %>
+      <div class="d-grid gap-2">
+        <%= form.submit 'Upload File', class: 'btn btn-primary' %>
+      </div>
+    <% end %>
   </div>
-<% end %>
+</div>
