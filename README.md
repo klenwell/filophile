@@ -26,12 +26,31 @@ Before running the application for the first time, you need to build the Docker 
     docker-compose run test rails db:setup
     ```
 
+### Configuration
+
+Before you can run the web server, you need to configure Google OAuth 2.0 for authentication.
+
+1.  **Create Google OAuth Credentials:**
+    - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+    - Create a new project or select an existing one.
+    - Navigate to "APIs & Services" > "Credentials".
+    - Click "Create Credentials" and select "OAuth client ID".
+    - Choose "Web application" as the application type.
+    - Under "Authorized JavaScript origins", add `http://localhost:3000`.
+    - Under "Authorized redirect URIs", add `http://localhost:3000/auth/google_oauth2/callback`.
+    - Click "Create" and copy the **Client ID** and **Client Secret**.
+
+2.  **Update Docker Compose Configuration:**
+    - Open the `docker-compose.yml` file.
+    - In the `web` service's `environment` section, you will find placeholders for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+    - Replace `"YOUR_GOOGLE_CLIENT_ID"` and `"YOUR_GOOGLE_CLIENT_SECRET"` with the credentials you obtained from the Google Cloud Console.
+
 ### Running the Web Server
 
-To start the web server for local development, run the following command:
+Once you have configured your OAuth credentials, you can start the web server.
 
 ```bash
-docker-compose up web
+docker-compose up --build
 ```
 
 You can then access the application at [http://localhost:3000](http://localhost:3000).
