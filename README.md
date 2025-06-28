@@ -28,9 +28,14 @@ Before running the application for the first time, you need to build the Docker 
 
 ### Configuration
 
-Before you can run the web server, you need to configure Google OAuth 2.0 for authentication.
+Before you can run the web server, you need to configure Google OAuth 2.0 for authentication and set up your local environment file.
 
-1.  **Create Google OAuth Credentials:**
+1.  **Create a local environment file:**
+    - This project uses a `.env` file to manage local environment variables.
+    - Copy the example file: `cp env.example .env`.
+    - **Important:** Add `.env` to your `.gitignore` file to ensure you don't commit your secrets.
+
+2.  **Create Google OAuth Credentials:**
     - Go to the [Google Cloud Console](https://console.cloud.google.com/).
     - Create a new project or select an existing one.
     - Navigate to "APIs & Services" > "Credentials".
@@ -40,14 +45,13 @@ Before you can run the web server, you need to configure Google OAuth 2.0 for au
     - Under "Authorized redirect URIs", add `http://localhost:3000/auth/google_oauth2/callback`.
     - Click "Create" and copy the **Client ID** and **Client Secret**.
 
-2.  **Update Docker Compose Configuration:**
-    - Open the `docker-compose.yml` file.
-    - In the `web` service's `environment` section, you will find placeholders for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
-    - Replace `"YOUR_GOOGLE_CLIENT_ID"` and `"YOUR_GOOGLE_CLIENT_SECRET"` with the credentials you obtained from the Google Cloud Console.
+3.  **Add Credentials to `.env` file:**
+    - Open the `.env` file you created in step 1.
+    - Set the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` variables with the values you obtained from the Google Cloud Console.
 
 ### Running the Web Server
 
-Once you have configured your OAuth credentials, you can start the web server.
+Once you have configured your `.env` file, you can start the web server.
 
 ```bash
 docker-compose up --build
