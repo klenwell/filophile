@@ -1,0 +1,27 @@
+<div class="container">
+  <h1>Upload Details</h1>
+
+  <p><strong>User:</strong> <%= @upload.user.email %></p>
+  <p><strong>Filename:</strong> <%= @upload.filename %></p>
+  <p><strong>Created At:</strong> <%= @upload.created_at %></p>
+
+  <h2>Upload Rows</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @upload.upload_rows.each do |row| %>
+        <tr>
+          <td><%= row.data %></td>
+          <td><%= row.status %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= link_to 'Back to Admin Uploads', admin_uploads_path, class: 'btn btn-secondary' %>
+</div>

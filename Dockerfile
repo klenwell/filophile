@@ -11,10 +11,19 @@ RUN apt-get update -qq && apt-get install -y \
 RUN useradd -u 1000 -m app && \
     chown -R app:app /home/app
 
+# Create and set ownership for the app directory
+RUN mkdir /app && chown -R app:app /app
+
 WORKDIR /app
+
+# Add the gem bin path to the PATH
+ENV PATH="/app/vendor/bundle/bin:/app/vendor/bundle/ruby/3.2.0/bin:${PATH}"
 
 # Switch to non-root user
 USER app
+
+# Configure bundler to install gems to vendor/bundle
+RUN bundle config set --local path 'vendor/bundle'
 
 # Install all gems
 COPY --chown=app:app Gemfile Gemfile.lock ./

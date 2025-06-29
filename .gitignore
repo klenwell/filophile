@@ -73,3 +73,6 @@ yarn-debug.log*
 
 # Ignore private docs
 /docs/private
+
+# Save gems locally
+/vendor/bundle

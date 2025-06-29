@@ -8,6 +8,8 @@ require 'rspec/rails'
 require 'capybara/rspec'
 require 'database_cleaner/active_record'
 # Add additional requires below this line. Rails is not loaded until this point!
+OmniAuth.config.test_mode = true
+require_relative 'support/omniauth_macros'
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -82,5 +84,12 @@ RSpec.configure do |config|
     DatabaseCleaner.cleaning do
       example.run
     end
+  end
+
+  config.include OmniauthMacros, type: :request
+
+  def sign_in(user)
+    mock_auth_hash(user)
+    get '/auth/google_oauth2/callback'
   end
 end
