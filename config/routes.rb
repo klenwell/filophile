@@ -4,7 +4,7 @@ Rails.application.routes.draw do
     get 'health_check', to: 'health_check#show'
   end
 
-  root "health_check#show"
+  root "home#index"
 
   get "/auth/google_oauth2/callback", to: "sessions#create"
   delete "/logout", to: "sessions#destroy"

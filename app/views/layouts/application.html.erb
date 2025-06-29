@@ -26,6 +26,11 @@
               <li class="nav-item">
                 <%= link_to 'New Upload', new_upload_path, class: 'nav-link' %>
               </li>
+              <% if current_user.admin? %>
+                <li class="nav-item">
+                  <%= link_to 'Admin', admin_uploads_path, class: 'nav-link' %>
+                </li>
+              <% end %>
             <% end %>
           </ul>
           <ul class="navbar-nav ms-auto">
