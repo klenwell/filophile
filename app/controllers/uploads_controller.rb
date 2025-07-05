@@ -16,7 +16,8 @@ class UploadsController < ApplicationController
   end
 
   def create
-    uploaded_io = params[:upload][:original_file]
+    # Use strong parameters to safely access the uploaded file.
+    uploaded_io = upload_params[:original_file]
     unless uploaded_io
       redirect_to new_upload_path, alert: 'Please select a file to upload.'
       return
@@ -90,5 +91,11 @@ class UploadsController < ApplicationController
     else
       redirect_to new_upload_path, alert: "Failed to save upload: #{upload.errors.full_messages.join(', ')}"
     end
+  end
+
+  # Strong params helper
+  def upload_params
+    # Using fetch to avoid ActionController::ParameterMissing if :upload key is absent
+    params.fetch(:upload, {}).permit(:original_file)
   end
 end

@@ -148,6 +148,15 @@ RSpec.describe "Uploads", type: :request do
         expect(response.body).to include("Please select a file to upload.")
         expect(Upload.count).to eq(0)
       end
+
+      it "handles missing upload parameters" do
+        post uploads_path, params: {}
+
+        expect(response).to redirect_to(new_upload_path)
+        follow_redirect!
+        expect(response.body).to include("Please select a file to upload.")
+        expect(Upload.count).to eq(0)
+      end
     end
 
     context "when not authenticated" do
