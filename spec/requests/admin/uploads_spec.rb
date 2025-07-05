@@ -66,5 +66,23 @@ RSpec.describe "Admin::Uploads", type: :request do
         expect(response).to redirect_to(root_path)
       end
     end
+
+    context "when upload has rows" do
+      let!(:upload_with_rows) { create(:upload, user: regular_user) }
+      let!(:row) { create(:upload_row, upload: upload_with_rows, row_index: 0, values: ["observation_date", "MANEMP"]) }
+
+      before do
+        sign_in(admin_user)
+        get admin_upload_path(upload_with_rows)
+      end
+
+      it "renders successfully even with upload rows" do
+        expect(response).to be_successful
+      end
+
+      it "displays the row values" do
+        expect(response.body).to include("MANEMP")
+      end
+    end
   end
 end

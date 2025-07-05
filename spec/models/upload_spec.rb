@@ -105,4 +105,16 @@ RSpec.describe Upload, type: :model do
       expect(build(:upload, user: user)).to be_valid
     end
   end
+
+  describe 'upload_rows ordering' do
+    it 'returns rows ordered by row_index ascending' do
+      upload = create(:upload, user: user)
+      # Create rows out of order
+      row2 = create(:upload_row, upload: upload, row_index: 2)
+      row1 = create(:upload_row, upload: upload, row_index: 1)
+
+      ordered_indices = upload.reload.upload_rows.pluck(:row_index)
+      expect(ordered_indices).to eq [1, 2]
+    end
+  end
 end

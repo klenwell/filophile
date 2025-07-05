@@ -1,6 +1,6 @@
 class Upload < ApplicationRecord
   belongs_to :user
-  has_many :upload_rows, dependent: :destroy
+  has_many :upload_rows, -> { order(:row_index) }, dependent: :destroy
   has_one_attached :original_file
 
   validates :filename, presence: true

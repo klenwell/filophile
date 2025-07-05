@@ -10,14 +10,12 @@
     <thead>
       <tr>
         <th>Data</th>
-        <th>Status</th>
       </tr>
     </thead>
     <tbody>
       <% @upload.upload_rows.each do |row| %>
         <tr>
-          <td><%= row.data %></td>
-          <td><%= row.status %></td>
+          <td><%= row.values.join(', ') %></td>
         </tr>
       <% end %>
     </tbody>
