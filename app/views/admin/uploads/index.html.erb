@@ -1,0 +1,26 @@
+<div class="container">
+  <h1>Admin - All Uploads</h1>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Filename</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @uploads.each do |upload| %>
+        <tr>
+          <td><%= upload.user.email %></td>
+          <td><%= upload.filename %></td>
+          <td><%= time_ago_in_words(upload.created_at) %> ago</td>
+          <td><%= link_to 'Show', admin_upload_path(upload), class: 'btn btn-primary' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%== pagy_bootstrap_nav(@pagy) %>
+</div>
